@@ -1,7 +1,8 @@
+import { useActionState } from "react";
 import { isEmail, hasMinLength, isEqualsToOtherValue, isNotEmpty } from "../util/validation";
 
 export default function Signup() {
-    function signupAction(formData) {
+    function signupAction(prevFormState, formData) {
         const email = formData.get('email');
         const password = formData.get('password');
         const confirmPassword = formData.get('confirm-password');
@@ -9,7 +10,7 @@ export default function Signup() {
         const lastName = formData.get('last-name');
         const role = formData.get('role');
         const acquisition = formData.getAll('acquisition');
-        const terms = formData.get('terms-and-conditions');
+        const terms = formData.get('terms');
 
         let errors = [];
         // Validate the form data
@@ -43,24 +44,28 @@ export default function Signup() {
         }
 
         if(errors.length > 0) {
-          alert(errors.join('\n'));
+          return { errors, enteredValues: { email, password, confirmPassword, firstName, lastName, role, acquisition, terms } };
         }
+
+        return { errors: null, enteredValues: null };
     }
 
+    const [formState, formAction] = useActionState(signupAction, { errors: null, enteredValues: null });
+
   return (
-    <form action={signupAction}>
+    <form action={formAction}>
       <h2>Welcome on board!</h2>
       <p>We just need a little bit of data from you to get you started 🚀</p>
 
       <div className="control">
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" name="email" />
+        <input id="email" type="email" name="email" defaultValue={formState.enteredValues?.email} />
       </div>
 
       <div className="control-row">
         <div className="control">
           <label htmlFor="password">Password</label>
-          <input id="password" type="password" name="password" />
+          <input id="password" type="password" name="password" defaultValue={formState.enteredValues?.password} />
         </div>
 
         <div className="control">
@@ -69,6 +74,7 @@ export default function Signup() {
             id="confirm-password"
             type="password"
             name="confirm-password"
+            defaultValue={formState.enteredValues?.confirmPassword}
           />
         </div>
       </div>
@@ -78,18 +84,18 @@ export default function Signup() {
       <div className="control-row">
         <div className="control">
           <label htmlFor="first-name">First Name</label>
-          <input type="text" id="first-name" name="first-name" />
+          <input type="text" id="first-name" name="first-name" defaultValue={formState.enteredValues?.firstName} />
         </div>
 
         <div className="control">
           <label htmlFor="last-name">Last Name</label>
-          <input type="text" id="last-name" name="last-name" />
+          <input type="text" id="last-name" name="last-name" defaultValue={formState.enteredValues?.lastName} />
         </div>
       </div>
 
       <div className="control">
         <label htmlFor="role">What best describes your role?</label>
-        <select id="role" name="role">
+        <select id="role" name="role" defaultValue={formState.enteredValues?.role}>
           <option value="student">Student</option>
           <option value="teacher">Teacher</option>
           <option value="employee">Employee</option>
@@ -106,6 +112,7 @@ export default function Signup() {
             id="google"
             name="acquisition"
             value="google"
+            defaultChecked={formState.enteredValues?.acquisition?.includes('google')}
           />
           <label htmlFor="google">Google</label>
         </div>
@@ -116,22 +123,29 @@ export default function Signup() {
             id="friend"
             name="acquisition"
             value="friend"
+            defaultChecked={formState.enteredValues?.acquisition?.includes('friend')}
           />
           <label htmlFor="friend">Referred by friend</label>
         </div>
 
         <div className="control">
-          <input type="checkbox" id="other" name="acquisition" value="other" />
+          <input type="checkbox" id="other" name="acquisition" value="other" defaultChecked={formState.enteredValues?.acquisition?.includes('other')} />
           <label htmlFor="other">Other</label>
         </div>
       </fieldset>
 
       <div className="control">
         <label htmlFor="terms-and-conditions">
-          <input type="checkbox" id="terms-and-conditions" name="terms" />I
+          <input type="checkbox" id="terms-and-conditions" name="terms" defaultChecked={formState.enteredValues?.terms} />I
           agree to the terms and conditions
         </label>
       </div>
+
+      {formState.errors && <ul className="error">
+        {formState.errors.map((error, index) => (
+          <li key={error}>{error}</li>
+        ))}
+      </ul>}
 
       <p className="form-actions">
         <button type="reset" className="button button-flat">
