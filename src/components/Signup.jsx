@@ -1,19 +1,54 @@
-export default function Signup() {
-    function handleSubmit(event) {
-        event.preventDefault();
+import { isEmail, hasMinLength, isEqualsToOtherValue, isNotEmpty } from "../util/validation";
 
-        const fd = new FormData(event.target); // Inbuilt function provided by browser. No dependency on react.
-        // Converts FormData to object. Only issue is that it won't work for input fields with multiple values like checkboxes here.
-        // Workaround is to get all the values of such checkboxes using fd.GetAll() and assign value afterwards.
-        // Also this requires that name attribute is populated for each input to work.
-        const acquisition = fd.getAll("acquisition");
-        const enteredValues = Object.fromEntries(fd.entries());
-        enteredValues.acquisition = acquisition;
-        console.log("Signing up with", enteredValues);
+export default function Signup() {
+    function signupAction(formData) {
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const confirmPassword = formData.get('confirm-password');
+        const firstName = formData.get('first-name');
+        const lastName = formData.get('last-name');
+        const role = formData.get('role');
+        const acquisition = formData.getAll('acquisition');
+        const terms = formData.get('terms-and-conditions');
+
+        let errors = [];
+        // Validate the form data
+        if(!isEmail(email)) {
+            errors.push('Email is not valid');
+        }
+
+        if(!isNotEmpty(password)) {
+            errors.push('Password is required');
+        }
+        if(!hasMinLength(password, 8)) {
+            errors.push('Password must be at least 8 characters long');
+        }
+        if(!isEqualsToOtherValue(password, confirmPassword)) {
+            errors.push('Passwords do not match');
+        }
+        if(!isNotEmpty(firstName)) {
+            errors.push('First name is required');
+        }
+        if(!isNotEmpty(lastName)) {
+            errors.push('Last name is required');
+        }
+        if(!isNotEmpty(role)) {
+            errors.push('Role is required');
+        }
+        if(acquisition.length === 0) {
+            errors.push('Acquisition is required');
+        }
+        if(!terms) {
+            errors.push('You must agree to the terms and conditions');
+        }
+
+        if(errors.length > 0) {
+          alert(errors.join('\n'));
+        }
     }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form action={signupAction}>
       <h2>Welcome on board!</h2>
       <p>We just need a little bit of data from you to get you started 🚀</p>
 
@@ -53,7 +88,7 @@ export default function Signup() {
       </div>
 
       <div className="control">
-        <label htmlFor="phone">What best describes your role?</label>
+        <label htmlFor="role">What best describes your role?</label>
         <select id="role" name="role">
           <option value="student">Student</option>
           <option value="teacher">Teacher</option>
